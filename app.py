@@ -157,7 +157,6 @@ class TrainingGenerator:
             else: sent = f"{instructions[0]}, then {instructions[1]}, and finally {instructions[2]}"
             
             final_text = sent[0].upper() + sent[1:] + "."
-            # Return tuple: (Display Text, Audio Text)
             return final_text, final_text
 
         else: # HEBREW Instructions
@@ -202,32 +201,40 @@ class TrainingGenerator:
         # 1. VISUAL
         display_text = ", ".join(selected)
         
-        # 2. AUDIO: Insert explicit SILENCE tags (SSML)
-        # Using <break time="1500ms"/> for 1.5 second pause between words
+        # 2. AUDIO: Insert explicit SILENCE tags + SLOW RATE (-20%) inside the SSML
+        # This prevents the conflict between rate parameter and SSML tags
         audio_text_parts = []
         for word in selected:
             audio_text_parts.append(f"{word} <break time='1500ms'/>")
         
-        # Wrap in <speak> for valid SSML
-        audio_text = f"<speak>{''.join(audio_text_parts)}</speak>"
+        inner_text = "".join(audio_text_parts)
+        
+        # Wrap in <prosody> for rate, then <speak>
+        audio_text = f"<speak><prosody rate='-20%'>{inner_text}</prosody></speak>"
         
         return display_text, audio_text
 
-# --- Safe Async Helper (Fixed for Streamlit + Rate Control) ---
-async def _generate_audio(text, voice_name, rate_str):
-    # rate_str is dynamic now ("+0%" or "-20%")
-    communicate = edge_tts.Communicate(text, voice_name, rate=rate_str)
+# --- Safe Async Helper ---
+async def _generate_audio(text, voice_name):
+    # If the text is full SSML (starts with <speak>), we do NOT pass a rate argument.
+    # The rate is already embedded in the SSML string.
+    if text.strip().startswith("<speak>"):
+        communicate = edge_tts.Communicate(text, voice_name)
+    else:
+        # Default rate for plain text instructions
+        communicate = edge_tts.Communicate(text, voice_name, rate="+0%")
+        
     mp3_fp = io.BytesIO()
     async for chunk in communicate.stream():
         if chunk["type"] == "audio":
             mp3_fp.write(chunk["data"])
     return mp3_fp.getvalue()
 
-def get_audio_bytes_safe(text, voice_name, rate_str):
+def get_audio_bytes_safe(text, voice_name):
     loop = asyncio.new_event_loop()
     asyncio.set_event_loop(loop)
     try:
-        return loop.run_until_complete(_generate_audio(text, voice_name, rate_str))
+        return loop.run_until_complete(_generate_audio(text, voice_name))
     finally:
         loop.close()
 
@@ -303,21 +310,16 @@ def main():
     if st.button(txt["play_btn"], type="primary", use_container_width=True):
         gen = TrainingGenerator(language=lang, trainee_gender=logic_gender)
         
-        # Determine Rate based on Mode
         if is_sequencing:
-            # Slow down by 20% for memory
-            target_rate = "-20%"
             text_display, text_audio = gen.generate_sequence(seq_length)
         else:
-            # Normal speed for instructions
-            target_rate = "+0%"
             text_display, text_audio = gen.generate_instruction(objects_input, steps, complexity)
         
         st.session_state.current_text_display = text_display
         st.session_state.revealed = False
         
         try:
-            audio_data = get_audio_bytes_safe(text_audio, voice_id, target_rate)
+            audio_data = get_audio_bytes_safe(text_audio, voice_id)
             st.session_state.audio_bytes = audio_data
         except Exception as e:
             st.error(f"Audio Error: {e}")
