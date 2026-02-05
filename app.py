@@ -14,12 +14,12 @@ UI_TEXT = {
         "trainee_gender_label": "Trainee Gender (for grammar):",
         "trainee_gender_opts": ["Male", "Female"],
         "voice_gender": "Voice Speaker Gender:",
-        "mode_label": "Select Training Mode:", # New
+        "mode_label": "Select Training Mode:",
         "mode_instructions": "1. Instruction Following",
         "mode_sequencing": "2. Auditory Memory (Sequencing)",
         "inventory_label": "My Objects:",
         "steps_label": "Steps (Commands):",
-        "seq_length_label": "Sequence Length (Items):", # New
+        "seq_length_label": "Sequence Length (Items):",
         "complexity_label": "Complexity:",
         "play_btn": "▶ PLAY NEW TRACK",
         "reveal_btn": "👁 Reveal Text (Check Answer)",
@@ -40,12 +40,12 @@ UI_TEXT = {
         "trainee_gender_label": "באיזו דרך לפנות עם הוראות בשפה העברית?",
         "trainee_gender_opts": ["אתה", "את"],
         "voice_gender": "קול הדובר (קריין):",
-        "mode_label": "בחר סוג אימון:", # New
+        "mode_label": "בחר סוג אימון:",
         "mode_instructions": "1. ביצוע הוראות עם חפצים",
         "mode_sequencing": "2. זיכרון שמיעתי (רצף מילים)",
         "inventory_label": "רשימת החפצים שלי (לאימון הוראות):",
         "steps_label": "מספר שלבים (הוראות):",
-        "seq_length_label": "אורך הרצף (מספר מילים):", # New
+        "seq_length_label": "אורך הרצף (מספר מילים):",
         "complexity_label": "רמת קושי:",
         "play_btn": "▶ השמע תרגיל חדש",
         "reveal_btn": "👁 חשוף את הטקסט (בדיקה)",
@@ -62,8 +62,6 @@ UI_TEXT = {
 }
 
 # --- מאגר מילים לאימון זיכרון (Sequencing) ---
-# 50 words: Animals, Furniture, Vehicles, Food, Jewelry, Appliances
-# Varied syllable length + Low frequency words included.
 SEQUENCING_VOCAB_EN = [
     # Animals
     "Cat", "Dog", "Tiger", "Lion", "Elephant", "Kangaroo", "Armadillo", "Rhinoceros",
@@ -79,7 +77,7 @@ SEQUENCING_VOCAB_EN = [
     "Lamp", "Fan", "Blender", "Toaster", "Microwave", "Dishwasher", "Television", "Humidifier"
 ]
 
-# --- לוגיקה בעברית (Hebrew Logic - Instructions Mode) ---
+# --- לוגיקה בעברית ---
 HE_VOCAB = {
     "objects": {
         "עט": "m", "עיפרון": "m", "מחק": "m", "דף": "m", "ספר": "m", "שלט": "m", "טוש": "m", "מפתח": "m",
@@ -97,7 +95,6 @@ class TrainingGenerator:
         self.language = language
         self.trainee_gender = trainee_gender 
         
-        # English Instruction Data
         self.en_default_objects = ["red pen", "blue pen", "pencil", "notebook", "keys", "cup"]
         self.en_actions_simple = [
             "put the {obj} inside the box", "lift the {obj}", "touch the {obj}", 
@@ -108,7 +105,6 @@ class TrainingGenerator:
             "place the {obj} behind the box", "tap the {obj} three times"
         ]
 
-        # Hebrew Instruction Data
         self.he_default_objects = "עט אדום, עט כחול, מחק, מחברת, כוס, מפתח"
         self.he_actions_simple = [
             ("שים את", "שימי את", "בתוך הקופסה"), ("הרם את", "הרימי את", ""),
@@ -159,7 +155,10 @@ class TrainingGenerator:
             if len(instructions) == 1: sent = instructions[0]
             elif len(instructions) == 2: sent = f"{instructions[0]}, and then {instructions[1]}"
             else: sent = f"{instructions[0]}, then {instructions[1]}, and finally {instructions[2]}"
-            return sent[0].upper() + sent[1:] + "."
+            
+            final_text = sent[0].upper() + sent[1:] + "."
+            # Return tuple: (Display Text, Audio Text)
+            return final_text, final_text
 
         else: # HEBREW Instructions
             for _ in range(steps):
@@ -191,35 +190,44 @@ class TrainingGenerator:
             if len(instructions) == 1: sent = instructions[0]
             elif len(instructions) == 2: sent = f"{instructions[0]}, ואז {instructions[1]}"
             else: sent = f"{instructions[0]}, אחר כך {instructions[1]}, ולבסוף {instructions[2]}"
-            return sent + "."
+            
+            final_text = sent + "."
+            return final_text, final_text
 
     # --- Mode 2: Sequencing ---
     def generate_sequence(self, length):
-        # Currently using English list for both languages as requested
-        # For Hebrew in future, we would switch list based on self.language
         pool = SEQUENCING_VOCAB_EN 
-        
-        # Select N unique words if possible, else allow repeats
         selected = random.sample(pool, length)
         
-        # Create string with commas for pausing
-        sequence_str = ", ".join(selected)
-        return sequence_str
+        # 1. VISUAL
+        display_text = ", ".join(selected)
+        
+        # 2. AUDIO: Insert explicit SILENCE tags (SSML)
+        # Using <break time="1500ms"/> for 1.5 second pause between words
+        audio_text_parts = []
+        for word in selected:
+            audio_text_parts.append(f"{word} <break time='1500ms'/>")
+        
+        # Wrap in <speak> for valid SSML
+        audio_text = f"<speak>{''.join(audio_text_parts)}</speak>"
+        
+        return display_text, audio_text
 
-# --- Safe Async Helper ---
-async def _generate_audio(text, voice_name):
-    communicate = edge_tts.Communicate(text, voice_name)
+# --- Safe Async Helper (Fixed for Streamlit + Rate Control) ---
+async def _generate_audio(text, voice_name, rate_str):
+    # rate_str is dynamic now ("+0%" or "-20%")
+    communicate = edge_tts.Communicate(text, voice_name, rate=rate_str)
     mp3_fp = io.BytesIO()
     async for chunk in communicate.stream():
         if chunk["type"] == "audio":
             mp3_fp.write(chunk["data"])
     return mp3_fp.getvalue()
 
-def get_audio_bytes_safe(text, voice_name):
+def get_audio_bytes_safe(text, voice_name, rate_str):
     loop = asyncio.new_event_loop()
     asyncio.set_event_loop(loop)
     try:
-        return loop.run_until_complete(_generate_audio(text, voice_name))
+        return loop.run_until_complete(_generate_audio(text, voice_name, rate_str))
     finally:
         loop.close()
 
@@ -245,7 +253,7 @@ def main():
     st.markdown("---")
 
     if 'generator' not in st.session_state: st.session_state.generator = TrainingGenerator()
-    if 'current_text' not in st.session_state: st.session_state.current_text = ""
+    if 'current_text_display' not in st.session_state: st.session_state.current_text_display = ""
     if 'audio_bytes' not in st.session_state: st.session_state.audio_bytes = None
     if 'score_correct' not in st.session_state: st.session_state.score_correct = 0
     if 'score_total' not in st.session_state: st.session_state.score_total = 0
@@ -255,7 +263,6 @@ def main():
     with st.sidebar:
         st.header(txt["config_header"])
         
-        # Mode Selection
         mode_key = st.radio(txt["mode_label"], [txt["mode_instructions"], txt["mode_sequencing"]])
         is_sequencing = (mode_key == txt["mode_sequencing"])
 
@@ -272,9 +279,7 @@ def main():
 
         st.markdown("---")
         
-        # Dynamic Controls based on Mode
         if not is_sequencing:
-            # INSTRUCTIONS MODE CONTROLS
             with st.expander(txt["guide_expander"], expanded=False):
                 st.markdown(txt["guide_text"])
 
@@ -286,7 +291,6 @@ def main():
             with c2: complexity = st.selectbox(txt["complexity_label"], ["Easy", "Hard"])
         
         else:
-            # SEQUENCING MODE CONTROLS
             st.info("Training: Auditory Memory")
             seq_length = st.slider(txt["seq_length_label"], min_value=3, max_value=8, value=4)
         
@@ -299,19 +303,21 @@ def main():
     if st.button(txt["play_btn"], type="primary", use_container_width=True):
         gen = TrainingGenerator(language=lang, trainee_gender=logic_gender)
         
+        # Determine Rate based on Mode
         if is_sequencing:
-            # Generate Sequence
-            text_output = gen.generate_sequence(seq_length)
-            # Add intro phrase for natural flow? Optional. Keeping it clean for now.
+            # Slow down by 20% for memory
+            target_rate = "-20%"
+            text_display, text_audio = gen.generate_sequence(seq_length)
         else:
-            # Generate Instruction
-            text_output = gen.generate_instruction(objects_input, steps, complexity)
+            # Normal speed for instructions
+            target_rate = "+0%"
+            text_display, text_audio = gen.generate_instruction(objects_input, steps, complexity)
         
-        st.session_state.current_text = text_output
+        st.session_state.current_text_display = text_display
         st.session_state.revealed = False
         
         try:
-            audio_data = get_audio_bytes_safe(text_output, voice_id)
+            audio_data = get_audio_bytes_safe(text_audio, voice_id, target_rate)
             st.session_state.audio_bytes = audio_data
         except Exception as e:
             st.error(f"Audio Error: {e}")
@@ -322,26 +328,26 @@ def main():
 
     st.markdown("---")
 
-    if st.session_state.current_text:
+    if st.session_state.current_text_display:
         if not st.session_state.revealed:
             if st.button(txt["reveal_btn"]):
                 st.session_state.revealed = True
                 st.rerun()
         
         if st.session_state.revealed:
-            st.info(f"{txt['instr_header']} {st.session_state.current_text}")
+            st.info(f"{txt['instr_header']} {st.session_state.current_text_display}")
             col1, col2, col3 = st.columns([1,1,3])
             with col1:
                 if st.button(txt["correct_btn"]):
                     st.session_state.score_correct += 1
                     st.session_state.score_total += 1
-                    st.session_state.current_text = "" 
+                    st.session_state.current_text_display = "" 
                     st.session_state.audio_bytes = None
                     st.rerun()
             with col2:
                 if st.button(txt["incorrect_btn"]):
                     st.session_state.score_total += 1
-                    st.session_state.current_text = "" 
+                    st.session_state.current_text_display = "" 
                     st.session_state.audio_bytes = None
                     st.rerun()
 
