@@ -4,248 +4,246 @@ import edge_tts
 import asyncio
 import io
 
-# --- מילונים ושפות (UI Text) ---
+# --- UI Text & Localization ---
 UI_TEXT = {
     "en": {
         "title": "🎧 APD Training - Speech in Noise",
         "config_header": "⚙️ Configuration",
-        "lang_select": "Interface Language / שפת ממשק",
-        "trainee_gender_label": "Trainee Gender (for grammar):",
-        "trainee_gender_opts": ["Male", "Female"],
-        "voice_gender": "Voice Speaker Gender:",
         "mode_label": "Select Training Mode:",
         "mode_instructions": "1. Instruction Following",
         "mode_sequencing": "2. Auditory Memory (Sequencing)",
-        "inventory_label": "My Objects:",
-        "steps_label": "Steps (Commands):",
-        "seq_length_label": "Sequence Length (Items):",
+        "mode_summarization": "3. Essence Extraction (SVO)",
+        "trainee_gender_label": "Trainee Gender (for grammar):",
+        "trainee_gender_opts": ["Male", "Female"],
+        "voice_gender": "Voice Speaker Gender:",
+        "inventory_label": "My Objects (for Instructions):",
+        "steps_label": "Steps:",
+        "seq_length_label": "Sequence Length:",
         "complexity_label": "Complexity:",
         "play_btn": "▶ PLAY",
         "reveal_btn": "👁 Reveal Text",
         "correct_btn": "✔ Correct",
         "incorrect_btn": "✖ Incorrect",
         "score_label": "Session Score",
-        "instr_header": "Content:",
-        "guide_expander": "ℹ️ Instructions Guide",
-        "guide_text": "Enter items separated by commas.",
+        "instr_header": "Full Sentence:",
+        "summary_header": "Essential Essence (SVO):",
         "noise_header": "🔊 Background Noise",
-        "noise_caption": "Use the video player volume to adjust noise level.",
-        "listen_caption": "Tip: Use the volume button on the player above to adjust voice volume."
+        "noise_caption": "Adjust noise volume in the player below.",
+        "listen_caption": "Adjust voice volume in the black player above."
     },
     "he": {
         "title": "🎧 אימון עיבוד שמיעתי - דיבור ברעש",
         "config_header": "⚙️ הגדרות אימון",
-        "lang_select": "שפת אימון",
-        "trainee_gender_label": "באיזו דרך לפנות עם הוראות בשפה העברית?",
-        "trainee_gender_opts": ["אתה", "את"],
-        "voice_gender": "קול הדובר (קריין):",
         "mode_label": "בחר סוג אימון:",
-        "mode_instructions": "1. ביצוע הוראות עם חפצים",
-        "mode_sequencing": "2. זיכרון שמיעתי (רצף מילים)",
-        "inventory_label": "רשימת החפצים שלי (לאימון הוראות):",
-        "steps_label": "מספר שלבים (הוראות):",
-        "seq_length_label": "אורך הרצף (מספר מילים):",
+        "mode_instructions": "1. ביצוע הוראות",
+        "mode_sequencing": "2. זיכרון שמיעתי (רצף)",
+        "mode_summarization": "3. תמצות עיקר המשפט (SVO)",
+        "trainee_gender_label": "באיזו דרך לפנות?",
+        "trainee_gender_opts": ["אתה", "את"],
+        "voice_gender": "קול הדובר:",
+        "inventory_label": "רשימת חפצים:",
+        "steps_label": "שלבים:",
+        "seq_length_label": "אורך רצף:",
         "complexity_label": "רמת קושי:",
-        "play_btn": "▶ השמע תרגיל",
-        "reveal_btn": "👁 חשוף טקסט (בדיקה)",
+        "play_btn": "▶ השמע",
+        "reveal_btn": "👁 חשוף טקסט",
         "correct_btn": "✔ הצלחתי",
         "incorrect_btn": "✖ טעיתי",
-        "score_label": "ניקוד בסשן הנוכחי",
-        "instr_header": "התוכן שהושמע:",
-        "guide_expander": "ℹ️ מדריך לכתיבת חפצים",
-        "guide_text": "**לאימון הוראות:** מומלץ לכתוב: 'עט אדום, עט כחול, מחק גדול'.",
+        "score_label": "ניקוד",
+        "instr_header": "המשפט המלא:",
+        "summary_header": "תמצית המשפט (SVO):",
         "noise_header": "🔊 רעש רקע",
-        "noise_caption": "יש להפעיל את הסרטון ולכוון את עוצמת הרעש דרך הנגן.",
-        "listen_caption": "טיפ: ניתן לשלוט בעוצמת הקול של הדובר דרך הנגן השחור למעלה."
+        "noise_caption": "כוון ווליום רעש בנגן למטה.",
+        "listen_caption": "כוון ווליום דובר בנגן למעלה."
     }
 }
 
-# --- מאגר 50 מילים לאימון זיכרון ---
-SEQUENCING_VOCAB_EN = [
-    "Cat", "Dog", "Tiger", "Lion", "Elephant", "Kangaroo", "Armadillo", "Rhinoceros",
-    "Bed", "Chair", "Table", "Sofa", "Cabinet", "Recliner", "Ottoman", "Armoire",
-    "Car", "Bus", "Tractor", "Rocket", "Bicycle", "Ambulance", "Helicopter", "Motorcycle",
-    "Bread", "Pear", "Apple", "Pizza", "Spaghetti", "Banana", "Cauliflower", "Watermelon",
-    "Ring", "Watch", "Necklace", "Earring", "Bracelet", "Medallion", "Amulet", "Tiara",
-    "Lamp", "Fan", "Blender", "Toaster", "Microwave", "Dishwasher", "Television", "Humidifier"
+# --- Data: Sequencing ---
+SEQUENCING_VOCAB = ["Cat", "Dog", "Tiger", "Lion", "Elephant", "Kangaroo", "Armadillo", "Rhinoceros", "Bed", "Chair", "Table", "Sofa", "Cabinet", "Recliner", "Ottoman", "Armoire", "Car", "Bus", "Tractor", "Rocket", "Bicycle", "Ambulance", "Helicopter", "Motorcycle", "Bread", "Pear", "Apple", "Pizza", "Spaghetti", "Banana", "Cauliflower", "Watermelon", "Ring", "Watch", "Necklace", "Earring", "Bracelet", "Medallion", "Amulet", "Tiara", "Lamp", "Fan", "Blender", "Toaster", "Microwave", "Dishwasher", "Television", "Humidifier"]
+
+# --- Data: Summarization (SVO) with Complexity ---
+# Each template has: Core (Subject+Verb), Clause1 (Easy distractor), Clause2 (Hard distractor)
+SVO_TEMPLATES = [
+    {
+        "subj": "The hungry cat", "verb_full": "jumped over the wall", "core_subj": "The cat", "core_verb": "jumped",
+        "c1": "which sat on the fence", 
+        "c2": "despite being chased by the dog"
+    },
+    {
+        "subj": "The manager", "verb_full": "approved the request", "core_subj": "The manager", "core_verb": "approved the request",
+        "c1": "after reviewing all the files", 
+        "c2": "although it was late in the day"
+    },
+    {
+        "subj": "The software update", "verb_full": "was finally released", "core_subj": "The update", "core_verb": "was released",
+        "c1": "which was delayed for months", 
+        "c2": "due to critical technical errors"
+    },
+    {
+        "subj": "Dr. Smith", "verb_full": "presented his new theory", "core_subj": "Dr. Smith", "core_verb": "presented his theory",
+        "c1": "a leading expert in linguistics", 
+        "c2": "at the international conference in Paris"
+    },
+    {
+        "subj": "The experiment results", "verb_full": "proved the hypothesis", "core_subj": "The results", "core_verb": "proved the hypothesis",
+        "c1": "despite being unexpected", 
+        "c2": "which were collected over five years"
+    },
+    {
+        "subj": "The young pilot", "verb_full": "landed the plane safely", "core_subj": "The pilot", "core_verb": "landed the plane",
+        "c1": "who was exhausted from the flight", 
+        "c2": "amidst the heavy storm and strong winds"
+    },
+    {
+        "subj": "The gardener", "verb_full": "planted the roses", "core_subj": "The gardener", "core_verb": "planted roses",
+        "c1": "working under the hot sun", 
+        "c2": "before the rain started to fall"
+    },
+    {
+        "subj": "The teacher", "verb_full": "explained the lesson", "core_subj": "The teacher", "core_verb": "explained the lesson",
+        "c1": "who noticed the students were confused", 
+        "c2": "using a new digital whiteboard"
+    }
 ]
 
 class TrainingGenerator:
-    def __init__(self, language="en", trainee_gender="Male"):
-        self.language = language
-        self.trainee_gender = trainee_gender 
-
-    def get_clean_list(self, user_input):
-        items = [x.strip() for x in user_input.split(",") if x.strip()]
-        if not items:
-            return ["red pen", "blue pen", "pencil", "notebook", "keys", "cup"] if self.language == "en" else ["עט אדום", "עט כחול", "מחק", "מחברת"]
-        return items
-
-    def _hebrew_grammar_fix(self, action_template, obj_str):
-        cmd = action_template[0] if self.trainee_gender == "Male" else action_template[1]
-        suffix = action_template[2]
-        return f"{cmd} {obj_str} {suffix}".strip()
+    def __init__(self, lang, gender):
+        self.lang = lang
+        self.gender = gender
 
     # --- Mode 1: Instructions ---
-    def generate_instruction(self, objects_input, steps, complexity):
-        objects_list = self.get_clean_list(objects_input)
-        instructions = []
-        
-        # Simple/Complex Logic (Shortened for speed)
-        en_simple = ["put the {obj} inside the box", "lift the {obj}", "touch the {obj}"]
-        en_complex = ["gently rotate the {obj} clockwise", "flip the {obj} over quickly", "tap the {obj} three times"]
-        he_simple = [("שים את", "שימי את", "בקופסה"), ("הרם את", "הרימי את", ""), ("גע ב", "געי ב", "")]
-        he_complex = [("סובב את", "סובבי את", "בזהירות"), ("הפוך את", "הפכי את", "מהר"), ("הקש על", "הקישי על", "פעמיים")]
-
+    def gen_instr(self, inv, steps, comp):
+        objs = [x.strip() for x in inv.split(",") if x.strip()] or ["pen", "cup"]
+        acts = ["put the {obj} in the box", "touch the {obj}", "lift the {obj}"] if self.lang == "en" else [("שים את", "שימי את", "בקופסה"), ("גע ב", "געי ב", ""), ("הרם את", "הרימי את", "")]
+        res = []
         for _ in range(steps):
-            target = random.choice(objects_list)
-            if self.language == "en":
-                if complexity == "Easy":
-                    instructions.append(random.choice(en_simple).format(obj=target))
+            o = random.choice(objs)
+            if self.lang == "en": 
+                if comp == "Hard":
+                     # Add distractor logic for hard instructions
+                     dist = random.choice(objs)
+                     res.append(f"Before you touch the {o}, touch the {dist}")
                 else:
-                    dist = random.choice(objects_list)
-                    type_ = random.choice(["neg", "time"])
-                    if type_ == "neg": instructions.append(f"Touch the {target}, but ignore the {dist}")
-                    else: instructions.append(f"Before you touch the {target}, touch the {dist}")
-            else:
-                if complexity == "Easy":
-                    instructions.append(self._hebrew_grammar_fix(random.choice(he_simple), target))
+                    res.append(random.choice(acts).format(obj=o))
+            else: # Hebrew
+                a = random.choice(acts)
+                v = a[0] if self.gender == "Male" else a[1]
+                if comp == "Hard":
+                    dist = random.choice(objs)
+                    pre = "לפני שאתה" if self.gender == "Male" else "לפני שאת"
+                    res.append(f"{pre} נוגע ב{o}, גע ב{dist}")
                 else:
-                    dist = random.choice(objects_list)
-                    type_ = random.choice(["neg", "time"])
-                    if type_ == "neg": instructions.append(f"{self._hebrew_grammar_fix(random.choice(he_simple), target)}, אך אל תגע ב{dist}" if self.trainee_gender == "Male" else f"אך אל תגעי ב{dist}")
-                    else: instructions.append(f"לפני {target}, {self._hebrew_grammar_fix(random.choice(he_simple), dist)}")
-
-        text = ". ".join(instructions) + "."
-        return text, text
+                    res.append(f"{v} {o} {a[2]}".strip())
+        
+        txt = ". ".join(res) + "."
+        return txt, txt, ""
 
     # --- Mode 2: Sequencing ---
-    def generate_sequence(self, length):
-        selected = random.sample(SEQUENCING_VOCAB_EN, length)
-        display_text = ", ".join(selected)
+    def gen_seq(self, length, voice_id):
+        words = random.sample(SEQUENCING_VOCAB, length)
+        display = ", ".join(words)
+        # Using SSML with pause
+        audio = f"<speak><prosody rate='-10%'>{''.join([f'{w} <break time=\"1000ms\"/>' for w in words])}</prosody></speak>"
+        return display, audio, ""
+
+    # --- Mode 3: Summarization (SVO) ---
+    def gen_svo(self, complexity):
+        item = random.choice(SVO_TEMPLATES)
         
-        # TRICK: We use periods to create the 0.5s pause naturally.
-        # "Cat. Dog. Fish." creates a perfect distinct pause.
-        audio_text = ". ".join(selected) + "." 
-        
-        return display_text, audio_text
+        # Easy: Subject + Clause1 + Verb
+        if complexity == "Easy":
+            full = f"{item['subj']}, {item['c1']}, {item['verb_full']}."
+            
+        # Hard: Clause2 + Subject + Clause1 + Verb (Double interruption)
+        else:
+            # Randomly place the second clause at start or end for variety
+            if random.random() > 0.5:
+                full = f"{item['c2']}, {item['subj']}, {item['c1']}, {item['verb_full']}."
+            else:
+                full = f"{item['subj']}, {item['c1']}, {item['verb_full']}, {item['c2']}."
 
-# --- Audio Generation (Optimized) ---
-async def _generate_audio_task(text, voice_name, rate_str):
-    communicate = edge_tts.Communicate(text, voice_name, rate=rate_str)
-    mp3_fp = io.BytesIO()
-    async for chunk in communicate.stream():
-        if chunk["type"] == "audio":
-            mp3_fp.write(chunk["data"])
-    return mp3_fp.getvalue()
+        summary = f"{item['core_subj']} {item['core_verb']}."
+        return full, full, summary
 
-def get_audio_bytes_safe(text, voice_name, rate_str):
-    loop = asyncio.new_event_loop()
-    asyncio.set_event_loop(loop)
-    try:
-        return loop.run_until_complete(_generate_audio_task(text, voice_name, rate_str))
-    finally:
-        loop.close()
+# --- Audio Engine ---
+async def _play(text, voice, rate="+0%"):
+    # If text is SSML (sequencing), use it directly. Otherwise apply rate.
+    if text.startswith("<speak"): 
+        comm = edge_tts.Communicate(text, voice)
+    else: 
+        comm = edge_tts.Communicate(text, voice, rate=rate)
+    
+    fp = io.BytesIO()
+    async for chunk in comm.stream():
+        if chunk["type"] == "audio": fp.write(chunk["data"])
+    return fp.getvalue()
 
-# --- Main Interface ---
 def main():
     st.set_page_config(page_title="APD Training", layout="wide")
-    lang_code = st.radio("Select Language / בחר שפה:", ["English", "עברית"], horizontal=True)
+    lang_code = st.radio("Language / שפה", ["English", "עברית"], horizontal=True)
     lang = "en" if lang_code == "English" else "he"
-    txt = UI_TEXT[lang] 
+    txt = UI_TEXT[lang]
 
-    if lang == "he":
-        st.markdown("<style> .stTextInput, .stTextArea, .stSelectbox, .stButton, .stSlider { direction: rtl; } p, h1, h2, h3, li, label, .stRadio, .stMarkdown { text-align: right; } </style>", unsafe_allow_html=True)
-
-    st.title(txt["title"])
-    st.markdown("---")
-
-    # State
-    if 'audio_bytes' not in st.session_state: st.session_state.audio_bytes = None
-    if 'display_text' not in st.session_state: st.session_state.display_text = ""
+    if 'audio' not in st.session_state: st.session_state.audio = None
+    if 'display' not in st.session_state: st.session_state.display = ""
+    if 'summary' not in st.session_state: st.session_state.summary = ""
     if 'revealed' not in st.session_state: st.session_state.revealed = False
-    if 'score' not in st.session_state: st.session_state.score = 0
-    if 'total' not in st.session_state: st.session_state.total = 0
 
-    # Sidebar
     with st.sidebar:
         st.header(txt["config_header"])
-        mode = st.radio(txt["mode_label"], [txt["mode_instructions"], txt["mode_sequencing"]])
-        is_seq = (mode == txt["mode_sequencing"])
-        
+        mode = st.radio(txt["mode_label"], [txt["mode_instructions"], txt["mode_sequencing"], txt["mode_summarization"]])
         st.markdown("---")
-        
-        # Gender settings
         g_sel = st.selectbox(txt["trainee_gender_label"], txt["trainee_gender_opts"])
-        logic_gender = "Male" if g_sel in ["אתה", "Male"] else "Female"
-        
         v_sel = st.selectbox(txt["voice_gender"], ["Female", "Male"])
-        if lang == "en": voice = "en-US-AriaNeural" if v_sel == "Female" else "en-US-GuyNeural"
-        else: voice = "he-IL-HilaNeural" if v_sel == "Female" else "he-IL-AvriNeural"
-
-        st.markdown("---")
+        v_id = ("en-US-AriaNeural" if v_sel == "Female" else "en-US-GuyNeural") if lang == "en" else ("he-IL-HilaNeural" if v_sel == "Female" else "he-IL-AvriNeural")
         
-        if is_seq:
-            # SEQUENCING CONTROLS
-            seq_len = st.slider(txt["seq_length_label"], 3, 8, 4)
-        else:
-            # INSTRUCTIONS CONTROLS
-            default_inv = "red pen, blue pen, eraser" if lang == "en" else "עט אדום, עט כחול, מחק"
-            objects_input = st.text_area(txt["inventory_label"], value=default_inv, height=100)
-            c1, c2 = st.columns(2)
-            with c1: steps = st.selectbox(txt["steps_label"], [1, 2, 3])
-            with c2: comp = st.selectbox(txt["complexity_label"], ["Easy", "Hard"])
-
+        # UI Logic for controls
+        if mode == txt["mode_instructions"]:
+            inv = st.text_area(txt["inventory_label"], value="red pen, blue pen, eraser" if lang == "en" else "עט, מחק", height=100)
+            steps = st.selectbox(txt["steps_label"], [1, 2, 3])
+            comp = st.selectbox(txt["complexity_label"], ["Easy", "Hard"])
+        
+        elif mode == txt["mode_sequencing"]:
+            seq_l = st.slider(txt["seq_length_label"], 3, 8, 4)
+            
+        elif mode == txt["mode_summarization"]:
+            # Show complexity also for Summarization
+            comp = st.selectbox(txt["complexity_label"], ["Easy", "Hard"])
+        
         st.markdown("---")
         st.video("https://www.youtube.com/watch?v=cXjUCkLG-sg")
 
-    # Main Area
     if st.button(txt["play_btn"], type="primary", use_container_width=True):
-        gen = TrainingGenerator(lang, logic_gender)
+        gen = TrainingGenerator(lang, "Male" if g_sel in ["אתה", "Male"] else "Female")
         
-        # Logic: Set Text and Speed
-        if is_seq:
-            display, audio_txt = gen.generate_sequence(seq_len)
-            rate = "-10%" # Slightly slower for sequencing
-        else:
-            display, audio_txt = gen.generate_instruction(objects_input, steps, comp)
-            rate = "+0%"  # Normal speed for instructions
-            
-        st.session_state.display_text = display
-        st.session_state.revealed = False
+        if mode == txt["mode_instructions"]: 
+            d, a, s = gen.gen_instr(inv, steps, comp)
+            r = "+0%"
+        elif mode == txt["mode_sequencing"]: 
+            d, a, s = gen.gen_seq(seq_l, v_id)
+            r = "-10%" # Rate is ignored for SSML but kept for variable consistency
+        else: # Summarization
+            d, a, s = gen.gen_svo(comp) # Pass complexity
+            r = "+0%"
         
-        # Generate Audio
-        with st.spinner("..."):
-            data = get_audio_bytes_safe(audio_txt, voice, rate)
-            st.session_state.audio_bytes = data
+        st.session_state.display, st.session_state.summary, st.session_state.revealed = d, s, False
+        with st.spinner("..."): st.session_state.audio = asyncio.run(_play(a, v_id, r))
 
-    # Play Audio
-    if st.session_state.audio_bytes:
-        st.audio(st.session_state.audio_bytes, format='audio/mp3', start_time=0)
+    if st.session_state.audio: st.audio(st.session_state.audio)
 
-    st.markdown("---")
-
-    # Feedback
-    if st.session_state.display_text:
+    if st.session_state.display:
+        st.markdown("---")
         if not st.session_state.revealed:
-            if st.button(txt["reveal_btn"]):
-                st.session_state.revealed = True
-                st.rerun()
+            if st.button(txt["reveal_btn"]): st.session_state.revealed = True; st.rerun()
         else:
-            st.info(f"{txt['instr_header']} {st.session_state.display_text}")
+            st.write(f"**{txt['instr_header']}**")
+            st.info(st.session_state.display)
+            if st.session_state.summary:
+                st.write(f"**{txt['summary_header']}**")
+                st.success(st.session_state.summary)
             c1, c2, _ = st.columns([1,1,3])
-            with c1:
-                if st.button(txt["correct_btn"]):
-                    st.session_state.score += 1; st.session_state.total += 1
-                    st.session_state.display_text = ""; st.session_state.audio_bytes = None
-                    st.rerun()
-            with c2:
-                if st.button(txt["incorrect_btn"]):
-                    st.session_state.total += 1
-                    st.session_state.display_text = ""; st.session_state.audio_bytes = None
-                    st.rerun()
-
-    st.metric(txt["score_label"], f"{st.session_state.score} / {st.session_state.total}")
+            if c1.button(txt["correct_btn"]): st.session_state.display = ""; st.session_state.audio = None; st.rerun()
+            if c2.button(txt["incorrect_btn"]): st.session_state.display = ""; st.session_state.audio = None; st.rerun()
 
 if __name__ == "__main__":
     main()
