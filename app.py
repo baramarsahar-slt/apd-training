@@ -3,7 +3,7 @@ import random
 import edge_tts
 import asyncio
 import io
-import pandas as pd # נדרש עבור טבלת המעקב
+import pandas as pd
 
 # --- UI Text & Localization ---
 UI_TEXT = {
@@ -14,6 +14,7 @@ UI_TEXT = {
         "mode_instructions": "1. Instruction Following",
         "mode_sequencing": "2. Auditory Memory (Sequencing)",
         "mode_summarization": "3. Essence Extraction (SVO)",
+        "mode_chronology": "4. Chronological Ordering", # New
         "trainee_gender_label": "Trainee Gender (for grammar):",
         "trainee_gender_opts": ["Male", "Female"],
         "voice_gender": "Voice Speaker Gender:",
@@ -30,6 +31,8 @@ UI_TEXT = {
         "clear_history": "🗑️ Clear Log",
         "instr_header": "Full Sentence:",
         "summary_header": "Essential Essence (SVO):",
+        "chrono_markers_header": "Time/Logic Markers:", # New
+        "chrono_order_header": "Correct Execution Order:", # New
         "noise_header": "🔊 Background Noise",
         "noise_caption": "Adjust noise volume in the player below.",
         "listen_caption": "Adjust voice volume in the black player above.",
@@ -42,6 +45,7 @@ UI_TEXT = {
         "mode_instructions": "1. ביצוע הוראות",
         "mode_sequencing": "2. זיכרון שמיעתי (רצף)",
         "mode_summarization": "3. תמצות עיקר המשפט (SVO)",
+        "mode_chronology": "4. סידור כרונולוגי (סדר פעולות)", # New
         "trainee_gender_label": "באיזו דרך לפנות?",
         "trainee_gender_opts": ["אתה", "את"],
         "voice_gender": "קול הדובר:",
@@ -58,6 +62,8 @@ UI_TEXT = {
         "clear_history": "🗑️ נקה היסטוריה",
         "instr_header": "המשפט המלא:",
         "summary_header": "תמצית המשפט (SVO):",
+        "chrono_markers_header": "מילות קישור וזמן:", # New
+        "chrono_order_header": "סדר הפעולות הנכון:", # New
         "noise_header": "🔊 רעש רקע",
         "noise_caption": "כוון ווליום רעש בנגן למטה.",
         "listen_caption": "כוון ווליום דובר בנגן למעלה.",
@@ -65,10 +71,8 @@ UI_TEXT = {
     }
 }
 
-# --- Data: Sequencing ---
+# --- Data: Sequencing & SVO (Existing) ---
 SEQUENCING_VOCAB = ["Cat", "Dog", "Tiger", "Lion", "Elephant", "Kangaroo", "Armadillo", "Rhinoceros", "Bed", "Chair", "Table", "Sofa", "Cabinet", "Recliner", "Ottoman", "Armoire", "Car", "Bus", "Tractor", "Rocket", "Bicycle", "Ambulance", "Helicopter", "Motorcycle", "Bread", "Pear", "Apple", "Pizza", "Spaghetti", "Banana", "Cauliflower", "Watermelon", "Ring", "Watch", "Necklace", "Earring", "Bracelet", "Medallion", "Amulet", "Tiara", "Lamp", "Fan", "Blender", "Toaster", "Microwave", "Dishwasher", "Television", "Humidifier"]
-
-# --- Data: Summarization (SVO) ---
 SVO_TEMPLATES = [
     {"subj": "The hungry cat", "verb_full": "jumped over the wall", "core_subj": "The cat", "core_verb": "jumped", "c1": "which sat on the fence", "c2": "despite being chased by the dog"},
     {"subj": "The manager", "verb_full": "approved the request", "core_subj": "The manager", "core_verb": "approved the request", "c1": "after reviewing all the files", "c2": "although it was late in the day"},
@@ -79,6 +83,40 @@ SVO_TEMPLATES = [
     {"subj": "The gardener", "verb_full": "planted the roses", "core_subj": "The gardener", "core_verb": "planted roses", "c1": "working under the hot sun", "c2": "before the rain started to fall"},
     {"subj": "The teacher", "verb_full": "explained the lesson", "core_subj": "The teacher", "core_verb": "explained the lesson", "c1": "who noticed the students were confused", "c2": "using a new digital whiteboard"}
 ]
+
+# --- Data: Chronological Ordering (New) ---
+CHRONO_DATA = {
+    "en": {
+        "Easy": [
+            {"text": "Before you leave the room, turn off the lights.", "markers": "Before", "order": "1. Turn off lights\n2. Leave room"},
+            {"text": "After you finish reading, close the book.", "markers": "After", "order": "1. Finish reading\n2. Close book"},
+            {"text": "While you wait for the bus, check the schedule.", "markers": "While", "order": "Check schedule + Wait (Simultaneous)"},
+            {"text": "Do not open the package before you verify the sender.", "markers": "Before (Not)", "order": "1. Verify sender\n2. Open package"},
+            {"text": "Make sure to wash your hands after you touch the dog.", "markers": "After", "order": "1. Touch dog\n2. Wash hands"}
+        ],
+        "Hard": [
+            {"text": "Before you submit the report, check the spelling, but only after you have saved the file.", "markers": "Before, After", "order": "1. Save file\n2. Check spelling\n3. Submit report"},
+            {"text": "After you unlock the door, turn off the alarm before taking off your shoes.", "markers": "After, Before", "order": "1. Unlock door\n2. Turn off alarm\n3. Take off shoes"},
+            {"text": "Don't eat the cake before you blow out the candles, which happens after we sing happy birthday.", "markers": "Before, After", "order": "1. Sing happy birthday\n2. Blow candles\n3. Eat cake"},
+            {"text": "While the water is boiling, chop the vegetables, and then add the spices.", "markers": "While, Then", "order": "1. Boil water + Chop vegetables\n2. Add spices"}
+        ]
+    },
+    "he": {
+        "Easy": [
+            {"text_m": "לפני שאתה נכנס לחדר, כבה את הטלפון.", "text_f": "לפני שאת נכנסת לחדר, כבי את הטלפון.", "markers": "לפני", "order": "1. לכבות טלפון\n2. להיכנס לחדר"},
+            {"text_m": "אחרי שתסיים לקרוא, תייק את המסמך.", "text_f": "אחרי שתסיימי לקרוא, תייקי את המסמך.", "markers": "אחרי", "order": "1. לקרוא\n2. לתייק"},
+            {"text_m": "בזמן שאתה מחכה למחשב, הכן דף ועט.", "text_f": "בזמן שאת מחכה למחשב, הכיני דף ועט.", "markers": "בזמן ש...", "order": "להמתין + להכין דף (בו זמנית)"},
+            {"text_m": "אל תענה על השאלון לפני שקראת את ההוראות.", "text_f": "אל תעני על השאלון לפני שקראת את ההוראות.", "markers": "לפני (שלילה)", "order": "1. לקרוא הוראות\n2. לענות על שאלון"},
+            {"text_m": "רק אחרי שתבדוק את הנתונים, תסיק מסקנות.", "text_f": "רק אחרי שתבדקי את הנתונים, תסיקי מסקנות.", "markers": "אחרי", "order": "1. לבדוק נתונים\n2. להסיק מסקנות"}
+        ],
+        "Hard": [
+            {"text_m": "לפני שתגיש את המטלה, וודא שהוספת מקורות, אך עשה זאת אחרי שתעבור על הכתיב.", "text_f": "לפני שתגישי את המטלה, וודאי שהוספת מקורות, אך עשי זאת אחרי שתעברי על הכתיב.", "markers": "לפני, אחרי", "order": "1. לעבור על כתיב\n2. לוודא מקורות\n3. להגיש מטלה"},
+            {"text_m": "אחרי שתצא מהפגישה, שלח סיכום, אבל לפני כן התקשר למנהל.", "text_f": "אחרי שתצאי מהפגישה, שלחי סיכום, אבל לפני כן התקשרי למנהל.", "markers": "אחרי, לפני", "order": "1. לצאת מפגישה\n2. להתקשר למנהל\n3. לשלוח סיכום"},
+            {"text_m": "בזמן שהקובץ יורד, פתח את המייל, ולאחר מכן שמור את הקובץ בתיקייה.", "text_f": "בזמן שהקובץ יורד, פתחי את המייל, ולאחר מכן שמרי את הקובץ בתיקייה.", "markers": "בזמן ש..., לאחר מכן", "order": "1. הורדה + פתיחת מייל\n2. שמירה בתיקייה"},
+            {"text_m": "אל תצא להפסקה לפני שסיימת את הדו\"ח, שאותו עליך להתחיל אחרי השיחה.", "text_f": "אל תצאי להפסקה לפני שסיימת את הדו\"ח, שאותו עליך להתחיל אחרי השיחה.", "markers": "לפני (שלילה), אחרי", "order": "1. שיחה\n2. כתיבת דו\"ח\n3. יציאה להפסקה"}
+        ]
+    }
+}
 
 class TrainingGenerator:
     def __init__(self, lang, gender):
@@ -107,13 +145,13 @@ class TrainingGenerator:
                 else:
                     res.append(f"{v} {o} {a[2]}".strip())
         txt = ". ".join(res) + "."
-        return txt, txt, ""
+        return txt, txt, "", "", ""
 
     def gen_seq(self, length, voice_id):
         words = random.sample(SEQUENCING_VOCAB, length)
         display = ", ".join(words)
         audio = f"<speak><prosody rate='-10%'>{''.join([f'{w} <break time=\"1000ms\"/>' for w in words])}</prosody></speak>"
-        return display, audio, ""
+        return display, audio, "", "", ""
 
     def gen_svo(self, complexity):
         item = random.choice(SVO_TEMPLATES)
@@ -122,7 +160,21 @@ class TrainingGenerator:
             if random.random() > 0.5: full = f"{item['c2']}, {item['subj']}, {item['c1']}, {item['verb_full']}."
             else: full = f"{item['subj']}, {item['c1']}, {item['verb_full']}, {item['c2']}."
         summary = f"{item['core_subj']} {item['core_verb']}."
-        return full, full, summary
+        return full, full, summary, "", ""
+
+    # --- Mode 4: Chronology (New) ---
+    def gen_chrono(self, complexity):
+        # Select data based on language and complexity
+        pool = CHRONO_DATA[self.lang][complexity]
+        item = random.choice(pool)
+        
+        # Handle gender for Hebrew text selection
+        if self.lang == "he":
+            full_text = item["text_m"] if self.gender == "Male" else item["text_f"]
+        else:
+            full_text = item["text"]
+            
+        return full_text, full_text, "", item["markers"], item["order"]
 
 async def _play(text, voice, rate="+0%"):
     if text.startswith("<speak"): comm = edge_tts.Communicate(text, voice)
@@ -134,7 +186,6 @@ async def _play(text, voice, rate="+0%"):
 
 def update_history(mode, level, is_correct):
     res_symbol = "✅" if is_correct else "❌"
-    # Store simple dictionary
     st.session_state.history.append({
         "mode": mode,
         "level": level,
@@ -151,33 +202,42 @@ def main():
     if 'audio' not in st.session_state: st.session_state.audio = None
     if 'display' not in st.session_state: st.session_state.display = ""
     if 'summary' not in st.session_state: st.session_state.summary = ""
+    if 'markers' not in st.session_state: st.session_state.markers = ""
+    if 'order' not in st.session_state: st.session_state.order = ""
     if 'revealed' not in st.session_state: st.session_state.revealed = False
     if 'score' not in st.session_state: st.session_state.score = 0
     if 'total' not in st.session_state: st.session_state.total = 0
     if 'history' not in st.session_state: st.session_state.history = []
     
-    # Store current config to log later
+    # Store current config
     if 'curr_mode' not in st.session_state: st.session_state.curr_mode = ""
     if 'curr_level' not in st.session_state: st.session_state.curr_level = ""
 
     with st.sidebar:
         st.header(txt["config_header"])
-        mode = st.radio(txt["mode_label"], [txt["mode_instructions"], txt["mode_sequencing"], txt["mode_summarization"]])
+        mode = st.radio(txt["mode_label"], [txt["mode_instructions"], txt["mode_sequencing"], txt["mode_summarization"], txt["mode_chronology"]])
         st.markdown("---")
         g_sel = st.selectbox(txt["trainee_gender_label"], txt["trainee_gender_opts"])
         v_sel = st.selectbox(txt["voice_gender"], ["Female", "Male"])
         v_id = ("en-US-AriaNeural" if v_sel == "Female" else "en-US-GuyNeural") if lang == "en" else ("he-IL-HilaNeural" if v_sel == "Female" else "he-IL-AvriNeural")
         
         level_desc = ""
+        # UI Control Logic
         if mode == txt["mode_instructions"]:
             inv = st.text_area(txt["inventory_label"], value="red pen, blue pen, eraser" if lang == "en" else "עט, מחק", height=100)
             steps = st.selectbox(txt["steps_label"], [1, 2, 3])
             comp = st.selectbox(txt["complexity_label"], ["Easy", "Hard"])
             level_desc = f"{steps} Steps, {comp}"
+        
         elif mode == txt["mode_sequencing"]:
             seq_l = st.slider(txt["seq_length_label"], 3, 8, 4)
             level_desc = f"{seq_l} Items"
+        
         elif mode == txt["mode_summarization"]:
+            comp = st.selectbox(txt["complexity_label"], ["Easy", "Hard"])
+            level_desc = f"{comp}"
+            
+        elif mode == txt["mode_chronology"]:
             comp = st.selectbox(txt["complexity_label"], ["Easy", "Hard"])
             level_desc = f"{comp}"
         
@@ -188,72 +248,84 @@ def main():
     if st.button(txt["play_btn"], type="primary", use_container_width=True):
         gen = TrainingGenerator(lang, "Male" if g_sel in ["אתה", "Male"] else "Female")
         
+        # Generator Routing
         if mode == txt["mode_instructions"]: 
-            d, a, s = gen.gen_instr(inv, steps, comp)
+            d, a, s, m, o = gen.gen_instr(inv, steps, comp)
             r = "+0%"
         elif mode == txt["mode_sequencing"]: 
-            d, a, s = gen.gen_seq(seq_l, v_id)
+            d, a, s, m, o = gen.gen_seq(seq_l, v_id)
             r = "-10%"
-        else: 
-            d, a, s = gen.gen_svo(comp)
+        elif mode == txt["mode_summarization"]: 
+            d, a, s, m, o = gen.gen_svo(comp)
+            r = "+0%"
+        else: # Chronology
+            d, a, s, m, o = gen.gen_chrono(comp)
             r = "+0%"
         
-        st.session_state.display, st.session_state.summary, st.session_state.revealed = d, s, False
-        # Save context for logging
-        st.session_state.curr_mode = mode.split(".")[1].strip() # Clean name
+        # Save State
+        st.session_state.display = d
+        st.session_state.summary = s
+        st.session_state.markers = m
+        st.session_state.order = o
+        st.session_state.revealed = False
+        st.session_state.curr_mode = mode.split(".")[1].strip()
         st.session_state.curr_level = level_desc
         
         with st.spinner("..."): st.session_state.audio = asyncio.run(_play(a, v_id, r))
 
     if st.session_state.audio: st.audio(st.session_state.audio)
 
+    # Feedback Section
     if st.session_state.display:
         st.markdown("---")
         if not st.session_state.revealed:
             if st.button(txt["reveal_btn"]): st.session_state.revealed = True; st.rerun()
         else:
+            # 1. Full Sentence
             st.write(f"**{txt['instr_header']}**")
             st.info(st.session_state.display)
-            if st.session_state.summary:
+            
+            # 2. Specific Feedback per Mode
+            if st.session_state.summary: # SVO
                 st.write(f"**{txt['summary_header']}**")
                 st.success(st.session_state.summary)
+                
+            if st.session_state.markers: # Chronology
+                c1, c2 = st.columns(2)
+                with c1:
+                    st.write(f"**{txt['chrono_markers_header']}**")
+                    st.warning(st.session_state.markers)
+                with c2:
+                    st.write(f"**{txt['chrono_order_header']}**")
+                    st.success(st.session_state.order)
             
+            # 3. Grading
             c1, c2, _ = st.columns([1,1,3])
-            
-            # Button Logic with Logging
             if c1.button(txt["correct_btn"]):
                 st.session_state.score += 1
                 st.session_state.total += 1
                 update_history(st.session_state.curr_mode, st.session_state.curr_level, True)
-                st.session_state.display = ""; st.session_state.audio = None
-                st.rerun()
+                st.session_state.display = ""; st.session_state.audio = None; st.rerun()
                 
             if c2.button(txt["incorrect_btn"]):
                 st.session_state.total += 1
                 update_history(st.session_state.curr_mode, st.session_state.curr_level, False)
-                st.session_state.display = ""; st.session_state.audio = None
-                st.rerun()
+                st.session_state.display = ""; st.session_state.audio = None; st.rerun()
 
-    # --- Score & History Section ---
+    # Score & History
     st.markdown("---")
     st.metric(txt["score_label"], f"{st.session_state.score} / {st.session_state.total}")
     
     if st.session_state.history:
         st.subheader(txt["history_label"])
-        # Create DataFrame for nice display
         df = pd.DataFrame(st.session_state.history)
-        # Rename columns for display based on language
-        df.columns = txt["table_cols"][1:] # Skip 'Time' or Number, just use Mode/Level/Result
-        
-        # Add index + 1 to show trial number
+        df.columns = txt["table_cols"][1:] 
         df.index = df.index + 1
         st.dataframe(df, use_container_width=True)
         
         if st.button(txt["clear_history"]):
             st.session_state.history = []
-            st.session_state.score = 0
-            st.session_state.total = 0
-            st.rerun()
+            st.session_state.score = 0; st.session_state.total = 0; st.rerun()
 
 if __name__ == "__main__":
     main()
