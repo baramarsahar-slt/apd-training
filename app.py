@@ -68,43 +68,34 @@ UI_TEXT = {
 }
 
 # --- DATABASE: SVO (Summarization) ---
-# Format: {"text": "Full sentence", "core": "Core SVO"}
 SVO_DB = {
     "he": {
         "Easy": [
-            # Home
             {"text": "האמא, שישבה במטבח, קילפה תפוח.", "core": "האמא קילפה תפוח"},
             {"text": "הילד, ששיחק בחדר, בנה מגדל.", "core": "הילד בנה מגדל"},
             {"text": "החתול, שישן על הספה, תפס זבוב.", "core": "החתול תפס זבוב"},
             {"text": "הסבתא, בזמן שצפתה בטלוויזיה, סרגה סוודר.", "core": "הסבתא סרגה סוודר"},
             {"text": "המרק, שהתבשל על האש, גלש על הגז.", "core": "המרק גלש"},
-            # Work
             {"text": "המנהל, שנכנס לחדר, ביטל את הישיבה.", "core": "המנהל ביטל ישיבה"},
             {"text": "המורה, שנכנסה לכיתה, סגרה את הדלת.", "core": "המורה סגרה דלת"},
             {"text": "הטכנאי, שתיקן את המחשב, ביקש תשלום.", "core": "הטכנאי ביקש תשלום"},
-            # Health
             {"text": "הרופא, שבדק את הילד, רשם תרופה.", "core": "הרופא רשם תרופה"},
             {"text": "האחות, שמדדה חום, חייכה לחולה.", "core": "האחות חייכה"},
-            # Errands
             {"text": "הנהג, שעצר ברמזור, צפר למכונית.", "core": "הנהג צפר"},
             {"text": "המוכר, ששקל את הפירות, הדפיס חשבונית.", "core": "המוכר הדפיס חשבונית"},
             {"text": "השוטר, שעמד בצומת, כיוון את התנועה.", "core": "השוטר כיוון תנועה"},
             {"text": "הכספומט, שהיה בפינה, בלע את הכרטיס.", "core": "הכספומט בלע כרטיס"}
         ],
         "Hard": [
-            # Home
             {"text": "העוגה החגיגית, שהוכנה במיוחד למסיבה, נשרפה בתנור.", "core": "העוגה נשרפה"},
             {"text": "המפתח הרזרבי, שהוחבא מתחת לשטיח הכניסה, נאבד אתמול.", "core": "המפתח נאבד"},
             {"text": "הכלב של השכנים, שלמרבה הצער השתחרר מהרצועה, הפחיד את הילדים.", "core": "הכלב הפחיד ילדים"},
-            # Work
             {"text": "הדו\"ח השנתי, שהתעכב בדפוס בגלל תקלה טכנית, פורסם הבוקר.", "core": "הדו\"ח פורסם"},
             {"text": "הסטודנט החדש, שישב בסוף הכיתה ולא הקשיב, נכשל במבחן.", "core": "הסטודנט נכשל"},
             {"text": "המייל החשוב, שנשלח למנהל בטעות ללא הקובץ, נמחק מהשרת.", "core": "המייל נמחק"},
-            # Health
             {"text": "תוצאות הבדיקה, שהגיעו מהמעבדה באיחור של יומיים, היו תקינות.", "core": "התוצאות תקינות"},
             {"text": "האחות במיון, שלמרות העומס הרב שמרה על רוגע, קיבלה את הפצועים.", "core": "האחות קיבלה פצועים"},
             {"text": "הניתוח המורכב, שנמשך שעות רבות בחדר הניתוח, הסתיים בהצלחה.", "core": "הניתוח הסתיים"},
-            # Errands
             {"text": "החבילה מהדואר, שנשלחה מחו\"ל לפני כחודש ימים, אבדה בדרך.", "core": "החבילה אבדה"},
             {"text": "המכונית האדומה, שניסתה לעקוף את המשאית בפראות, ירדה לשוליים.", "core": "המכונית ירדה"},
             {"text": "הטיסה ללונדון, שהמריאה באיחור בגלל מזג האוויר, נחתה בשלום.", "core": "הטיסה נחתה"},
@@ -140,39 +131,30 @@ SVO_DB = {
 }
 
 # --- DATABASE: Chronology ---
-# Format: {"text": "Full sentence", "markers": "Before/After", "order": "1. First\n2. Second"}
 CHRONO_DB = {
     "he": {
         "Easy": [
-            # Home
             {"text": "לפני שאתה נכנס הביתה, נגב את הרגליים.", "markers": "לפני", "order": "1. לנגב רגליים\n2. להיכנס"},
             {"text": "אחרי שתסיים לאכול, שים את הצלחת בכיור.", "markers": "אחרי", "order": "1. לאכול\n2. צלחת בכיור"},
             {"text": "בזמן שהדוד דולק, תכין את הבגדים למקלחת.", "markers": "בזמן", "order": "בו זמנית: דוד דולק + הכנת בגדים"},
             {"text": "כבה את האור בסלון אחרי שכולם הלכו לישון.", "markers": "אחרי", "order": "1. כולם ישנים\n2. לכבות אור"},
-            # Work
             {"text": "לפני תחילת המבחן, כבה את הטלפון.", "markers": "לפני", "order": "1. לכבות טלפון\n2. להתחיל מבחן"},
             {"text": "אחרי שתכתוב את המייל, לחץ על שלח.", "markers": "אחרי", "order": "1. לכתוב\n2. לשלוח"},
             {"text": "שמור את הקובץ לפני שתסגור את המחשב.", "markers": "לפני", "order": "1. לשמור\n2. לסגור"},
-            # Health
             {"text": "לפני שאתה בולע כדור, שתה מים.", "markers": "לפני", "order": "1. לשתות\n2. לבלוע"},
             {"text": "שטוף את הפצע לפני שתשים פלסטר.", "markers": "לפני", "order": "1. לשטוף\n2. פלסטר"},
-            # Errands
             {"text": "לפני שתחצה את הכביש, הבט לכל הצדדים.", "markers": "לפני", "order": "1. להביט\n2. לחצות"},
             {"text": "שלם לנהג אחרי שעלית לאוטובוס.", "markers": "אחרי", "order": "1. לעלות\n2. לשלם"},
             {"text": "הוצא כסף לפני שתכנס לחנות.", "markers": "לפני", "order": "1. להוציא כסף\n2. להיכנס"}
         ],
         "Hard": [
-            # Home
             {"text": "אחרי שהאורחים ילכו, נשטוף כלים, אבל קודם נכניס את האוכל למקרר.", "markers": "אחרי, קודם", "order": "1. אורחים הולכים\n2. אוכל למקרר\n3. לשטוף כלים"},
             {"text": "אל תוציא את העוגה מהתבנית לפני שהיא התקררה לגמרי.", "markers": "לפני (שלילה)", "order": "1. עוגה מתקררת\n2. להוציא"},
             {"text": "לפני שתפעיל מכונת כביסה, בדוק כיסים, ואל תשכח להוסיף מרכך.", "markers": "לפני", "order": "1. לבדוק כיסים\n2. להוסיף מרכך\n3. להפעיל"},
-            # Work
             {"text": "לפני שליחת המייל למנהל, צרף את הקובץ, אך וודא קודם לכן שתיקנת שגיאות.", "markers": "לפני, קודם לכן", "order": "1. לתקן שגיאות\n2. לצרף קובץ\n3. לשלוח"},
             {"text": "אחרי שתצא מהפגישה, שלח סיכום לצוות, אבל קודם התקשר ללקוח.", "markers": "אחרי, קודם", "order": "1. לצאת מפגישה\n2. להתקשר ללקוח\n3. לשלוח סיכום"},
-            # Health
             {"text": "אל תקום מהמיטה לפני שהאחות תמדוד לך לחץ דם, וגם אז עשה זאת לאט.", "markers": "לפני (שלילה)", "order": "1. מדידת לחץ דם\n2. לקום"},
             {"text": "אחרי שתסיים את האנטיביוטיקה, גש לרופא, אך לפני כן קבע תור.", "markers": "אחרי, לפני כן", "order": "1. לסיים תרופה\n2. לקבוע תור\n3. לגשת לרופא"},
-            # Errands
             {"text": "אחרי שתצא מהחניון, פנה ימינה, אבל קודם לכן שלם במכונה.", "markers": "אחרי, קודם לכן", "order": "1. לשלם\n2. לצאת\n3. לפנות"},
             {"text": "לפני שתתחיל בנסיעה, חגור חגורה, אך עשה זאת רק אחרי שכוונת מראות.", "markers": "לפני, אחרי", "order": "1. לכוון מראות\n2. לחגור\n3. לנסוע"},
             {"text": "הזמן את המונית אחרי שהתארגנת, אך לפני שירדת לרחוב.", "markers": "אחרי, לפני", "order": "1. להתארגן\n2. להזמין\n3. לרדת לרחוב"}
@@ -206,8 +188,22 @@ CHRONO_DB = {
     }
 }
 
-# --- Sequencing Vocabulary ---
 SEQUENCING_VOCAB = ["Cat", "Dog", "Table", "Chair", "Car", "Bus", "Bread", "Apple", "Ring", "Watch", "Lamp", "Fan", "Book", "Pen", "Cup", "Key", "Shirt", "Shoe", "Door", "Wall"]
+
+# --- SMART SHUFFLE ENGINE ---
+def get_smart_random_item(db_name, lang, complexity):
+    state_key = f"pool_{db_name}_{lang}_{complexity}"
+    
+    # Initialize or refill if empty
+    if state_key not in st.session_state or len(st.session_state[state_key]) == 0:
+        if db_name == "SVO":
+            pool = SVO_DB[lang][complexity].copy()
+        else:
+            pool = CHRONO_DB[lang][complexity].copy()
+        random.shuffle(pool)
+        st.session_state[state_key] = pool
+        
+    return st.session_state[state_key].pop()
 
 class TrainingGenerator:
     def __init__(self, lang, gender):
@@ -218,39 +214,29 @@ class TrainingGenerator:
         objs = [x.strip() for x in inv.split(",") if x.strip()] or ["pen", "cup"]
         if self.lang == "en":
             acts = ["put the {obj} in the box", "touch the {obj}", "lift the {obj}"]
-            res = []
-            for _ in range(steps):
-                o = random.choice(objs)
-                res.append(random.choice(acts).format(obj=o))
+            res = [random.choice(acts).format(obj=random.choice(objs)) for _ in range(steps)]
         else:
             acts = [("שים את", "שימי את", "בקופסה"), ("גע ב", "געי ב", ""), ("הרם את", "הרימי את", "")]
             res = []
             for _ in range(steps):
-                o = random.choice(objs)
                 a = random.choice(acts)
                 v = a[0] if self.gender == "Male" else a[1]
-                res.append(f"{v} {o} {a[2]}".strip())
-        
+                res.append(f"{v} {random.choice(objs)} {a[2]}".strip())
         txt = ". ".join(res) + "."
         return txt, txt, "", "", ""
 
     def gen_seq(self, length, voice_id):
         words = random.sample(SEQUENCING_VOCAB, length)
         display = ", ".join(words)
-        # Natural pause using periods
         audio_text = ".  ".join(words) + "." 
         return display, audio_text, "", "", ""
 
     def gen_svo(self, complexity):
-        # Retrieve from DB
-        pool = SVO_DB[self.lang][complexity]
-        item = random.choice(pool)
+        item = get_smart_random_item("SVO", self.lang, complexity)
         return item["text"], item["text"], item["core"], "", ""
 
     def gen_chrono(self, complexity):
-        # Retrieve from DB
-        pool = CHRONO_DB[self.lang][complexity]
-        item = random.choice(pool)
+        item = get_smart_random_item("CHRONO", self.lang, complexity)
         return item["text"], item["text"], "", item["markers"], item["order"]
 
 async def _play(text, voice, rate="+0%"):
@@ -266,19 +252,9 @@ def main():
     lang = "en" if lang_code == "English" else "he"
     txt = UI_TEXT[lang]
 
-    # Initialize State
-    if 'audio' not in st.session_state: st.session_state.audio = None
-    if 'display' not in st.session_state: st.session_state.display = ""
-    if 'summary' not in st.session_state: st.session_state.summary = ""
-    if 'markers' not in st.session_state: st.session_state.markers = ""
-    if 'order' not in st.session_state: st.session_state.order = ""
-    if 'revealed' not in st.session_state: st.session_state.revealed = False
-    if 'score' not in st.session_state: st.session_state.score = 0
-    if 'total' not in st.session_state: st.session_state.total = 0
-    if 'history' not in st.session_state: st.session_state.history = []
-    
-    if 'curr_mode' not in st.session_state: st.session_state.curr_mode = ""
-    if 'curr_level' not in st.session_state: st.session_state.curr_level = ""
+    # Initialize App States
+    for key in ['audio', 'display', 'summary', 'markers', 'order', 'revealed', 'score', 'total', 'history', 'curr_mode', 'curr_level']:
+        if key not in st.session_state: st.session_state[key] = None if key == 'audio' else ([] if key == 'history' else (0 if key in ['score', 'total'] else ("" if key != 'revealed' else False)))
 
     with st.sidebar:
         st.header(txt["config_header"])
@@ -297,10 +273,7 @@ def main():
         elif mode == txt["mode_sequencing"]:
             seq_l = st.slider(txt["seq_length_label"], 3, 8, 4)
             level_desc = f"{seq_l} Items"
-        elif mode == txt["mode_summarization"]:
-            comp = st.selectbox(txt["complexity_label"], ["Easy", "Hard"])
-            level_desc = f"{comp}"
-        elif mode == txt["mode_chronology"]:
+        else:
             comp = st.selectbox(txt["complexity_label"], ["Easy", "Hard"])
             level_desc = f"{comp}"
         
@@ -319,13 +292,9 @@ def main():
         else: 
             d, a, s, m, o = gen.gen_chrono(comp); r = "+0%"
         
-        st.session_state.display = d
-        st.session_state.summary = s
-        st.session_state.markers = m
-        st.session_state.order = o
+        st.session_state.display, st.session_state.summary, st.session_state.markers, st.session_state.order = d, s, m, o
         st.session_state.revealed = False
-        st.session_state.curr_mode = mode.split(".")[1].strip()
-        st.session_state.curr_level = level_desc
+        st.session_state.curr_mode, st.session_state.curr_level = mode.split(".")[1].strip(), level_desc
         
         with st.spinner("..."): st.session_state.audio = asyncio.run(_play(a, v_id, r))
 
@@ -336,13 +305,8 @@ def main():
         if not st.session_state.revealed:
             if st.button(txt["reveal_btn"]): st.session_state.revealed = True; st.rerun()
         else:
-            st.write(f"**{txt['instr_header']}**")
-            st.info(st.session_state.display)
-            
-            if st.session_state.summary:
-                st.write(f"**{txt['summary_header']}**")
-                st.success(st.session_state.summary)
-                
+            st.write(f"**{txt['instr_header']}**"); st.info(st.session_state.display)
+            if st.session_state.summary: st.write(f"**{txt['summary_header']}**"); st.success(st.session_state.summary)
             if st.session_state.markers:
                 c1, c2 = st.columns(2)
                 with c1: st.write(f"**{txt['chrono_markers_header']}**"); st.warning(st.session_state.markers)
@@ -367,8 +331,7 @@ def main():
         df.columns = txt["table_cols"][1:]
         df.index = df.index + 1
         st.dataframe(df, use_container_width=True)
-        if st.button(txt["clear_history"]):
-            st.session_state.history = []; st.session_state.score = 0; st.session_state.total = 0; st.rerun()
+        if st.button(txt["clear_history"]): st.session_state.history = []; st.session_state.score = 0; st.session_state.total = 0; st.rerun()
 
 if __name__ == "__main__":
     main()
